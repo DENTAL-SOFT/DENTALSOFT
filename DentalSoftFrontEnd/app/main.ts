@@ -11,10 +11,9 @@ import { InMemoryBackendService, SEED_DATA } from 'angular2-in-memory-web-api';
 import { InMemoryDataService }               from './heroes/in-memory-data.service';
 
 bootstrap(  AppComponent,
-            
-            [ APP_ROUTER_PROVIDERS, 
-              HTTP_PROVIDERS, 
+            [ APP_ROUTER_PROVIDERS,
+              HTTP_PROVIDERS,
               { provide: XHRBackend, useClass: InMemoryBackendService }, // in-mem server
-              { provide: SEED_DATA, useClass: InMemoryDataService },      // in-mem server data
+              { provide: SEED_DATA, useClass: InMemoryDataService },     // in-mem server data
               Logger
             ] ).catch(err => console.error(err));

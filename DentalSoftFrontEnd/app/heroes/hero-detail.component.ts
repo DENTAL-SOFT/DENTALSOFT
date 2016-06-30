@@ -22,12 +22,12 @@ import { Router, ActivatedRoute } from '@angular/router';
     styleUrls: ['app/heroes/hero-detail.component.css']
 })
 
-export class HeroDetailComponent implements OnInit, OnDestroy{
+export class HeroDetailComponent implements OnInit, OnDestroy {
 
     @Input() hero: Hero;
     @Output() close = new EventEmitter();
     error: any;
-    navigated = false; // true if navigated here
+    navigated = false; //true if navigated here
     private sub: any;
 
     constructor(private route: ActivatedRoute,
@@ -35,7 +35,7 @@ export class HeroDetailComponent implements OnInit, OnDestroy{
                 private heroService: HeroService) {}
 
     ngOnInit() {
-        let id
+        let id: any;
         this.sub = this.route.params.subscribe(params => id = +params['id']);
         if (id !== null && !isNaN(id)) {
             this.navigated = true;

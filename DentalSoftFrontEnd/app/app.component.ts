@@ -4,7 +4,7 @@ import { HeroesComponent } from './heroes/heroes.component';
 import { HeroService }     from './heroes/hero.service';
 
   @Component({
-    selector: 'my-app', 
+    selector: 'my-app',
     template: `
                 <h1>{{title}}</h1>
                 <nav> 
@@ -15,8 +15,8 @@ import { HeroService }     from './heroes/hero.service';
               `,
    //templateUrl: 'app/app.component.html',
    styleUrls: ['app/app.component.css'],
-   directives: [ROUTER_DIRECTIVES], 
-   providers: [HeroService] 
+   directives: [ROUTER_DIRECTIVES],
+   providers: [HeroService]
   })
 
   export class AppComponent {
