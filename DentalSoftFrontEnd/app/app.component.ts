@@ -20,5 +20,5 @@ import { HeroService }     from './heroes/hero.service';
   })
 
   export class AppComponent {
-    title = 'Tour of Heroes';
+    title = 'Tour of heroes';
   }

@@ -5,7 +5,7 @@ var tslint = require('gulp-tslint');
 var tsProject = tsc.createProject('tsconfig.json');
 var runSequence = require('run-sequence');
 const del = require('del');
-var browserSync = require('browser-sync');
+var browserSync = require('browser-sync').create(); 
 var superstatic = require('superstatic');
 
 // --------------
@@ -32,10 +32,15 @@ var PATH = {
         // Order is quite important here for the HTML tag injection.
         lib: [
                 'node_modules/core-js/client/shim.min.js',
-                'node_modules/zone.js/dist/zone.js',
+                'node_modules/angular2/bundles/angular2-polyfills.js',
                 'node_modules/reflect-metadata/Reflect.js',
                 'node_modules/systemjs/dist/system.src.js',
+                'node_modules/reflect-metadata/Reflect.js',
+                
+                'node_modules/zone.js/dist/zone.js',
                 'node_modules/@angular/platform-browser-dynamic/index.js'
+                //'node_modules/rxjs/**'  
+                //'node_modules/@angular/**'
         ]
     }
 };
@@ -114,9 +119,9 @@ gulp.task('build.resources.dev',['clean.dev.resources'], function () {
 });
 
 // copy dependencies
-gulp.task('build.libs.dev', ['clean.dev.lib'], function() {
+gulp.task('build.libs.dev', function() {
   return gulp
-    .src(PATH.src.lib)
+    .src(PATH.src.lib) /* Glob required here. */
     .pipe(gulp.dest(PATH.dest.dev.lib));
 });
 
@@ -130,8 +135,26 @@ gulp.task('build.bower_components.dev',['clean.dev.bower'], function () {
 gulp.task('build.assets.dev', function() {
   return gulp
     .src([filertFile.allHTML, filertFile.allCSS])
-    .pipe(gulp.dest(PATH.dest.dev.app));
+    .pipe(gulp.dest(PATH.dest.dev.app))
+    .pipe(browserSync.stream());
 });
+
+// copy  assets HTML
+gulp.task('build.HTML.dev', function() {
+  return gulp
+    .src(filertFile.allHTML)
+    .pipe(gulp.dest(PATH.dest.dev.app))
+    .pipe(browserSync.stream());
+});
+
+// copy  assets  CSS 
+gulp.task('build.CSS.dev', function() {
+  return gulp
+    .src(filertFile.allCSS)
+    .pipe(gulp.dest(PATH.dest.dev.app))
+    .pipe(browserSync.stream());
+});
+
 
 // copy  INDEX
 gulp.task('build.index.dev', ['clean.dev.index'], function() {
@@ -159,39 +182,79 @@ gulp.task('ts.lint', function() {
 
 // --------------
 // Serve dev.
-gulp.task('default', ['serve.dev']);
+gulp.task('default', ['server.dev']);
 
-gulp.task('serve.dev', runSequence( 'ts.lint',
-                        'compile.ts.dev',
-                        'build.assets.dev',
-                        ['build.resources.dev','build.libs.dev','build.index.dev']
-                        ),              
+gulp.task('compile.watch', function () {
+    var sourceTsFiles = [
+        filertFile.allTs
+    ];
+
+    var tsResult = gulp
+        .src(sourceTsFiles)
+        .pipe(sourcemaps.init())
+        .pipe(tsc(tsProject));
+
+    return tsResult.js
+        .pipe(sourcemaps.write('.'))
+        .pipe(gulp.dest(PATH.dest.dev.app))
+        .pipe(browserSync.reload({stream: true}));
+});
+
+
+gulp.task('run-seq-all',function (cb) {
+    runSequence( 'ts.lint','compile.ts.dev','build.assets.dev',
+                 ['build.resources.dev', 'build.libs.dev', 'build.index.dev'],
+                cb);
+});
+
+gulp.task('server.dev', //runSequence( 'ts.lint',
+                        //'compile.ts.dev',
+                        //'build.assets.dev',
+                        ['run-seq-all'],
+                        //),
     function() {	
-        //cambios en los typescript
-        gulp.watch(filertFile.allTs , function(){
+
+        //load server development
+        serverDev();
+
+         //cambios en los typescript
+       /* gulp.watch(filertFile.allTs , function(){
             runSequence( 'ts.lint', 'compile.ts.dev');
-        });
+        }).on("change", browserSync.reload);*/
  
+        gulp.watch(filertFile.allTs , ['compile.watch']);
+
         //cambios en los html y css
-        gulp.watch([filertFile.allHTML,filertFile.allCSS, filertFile.index] , function(){
+        /* gulp.watch([filertFile.allHTML,filertFile.allCSS, filertFile.index] , function(){
             runSequence( ['build.assets.dev','build.index.dev']);
+        });*/
+
+        //cambios en los html css
+        gulp.watch(filertFile.allCSS , function(){
+            runSequence( ['build.CSS.dev']);
         });
 
-        serverDev();
+        //cambios en los html
+        gulp.watch([filertFile.allHTML, filertFile.index] , function(){
+            runSequence( ['build.HTML.dev','build.index.dev']);
+        });
     }
-);
+);  
+
+
 
 function serverDev(){
-    browserSync({
-        port: 3001,
-        files: ['index.html', 'app/**/*.js', 'app/**/*.html'],
+
+    browserSync.init({
+        port: 3000,
+        files: ["dist/dev/**/*.{html,css,js}"],
         injectChanges: true,
         logFileChanges: false,
         logLevel: 'silent',    
         notify: true,
         reloadDelay: 0,
         server: {
-            baseDir: ['dist/dev/'],
+            baseDir: ['dist/dev'],
             middleware: superstatic({ debug: false})
         }
     });	
